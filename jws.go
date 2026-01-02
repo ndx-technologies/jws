@@ -91,9 +91,9 @@ func (s *JWS) UnmarshalText(text []byte) error {
 }
 
 type JWSVerifier struct {
-	Roots        *x509.CertPool
-	CertVerifier interface {
-		VerifyCert(ctx context.Context, cert, issuer *x509.Certificate) error
+	Roots            *x509.CertPool
+	CertOCSPVerifier interface {
+		VerifyCertOCSPStatus(ctx context.Context, cert, issuer *x509.Certificate) error
 	}
 }
 
@@ -136,15 +136,15 @@ func (s JWSVerifier) VerifyJWS(ctx context.Context, jws JWS) (err error) {
 		return fmt.Errorf("cannot verify leaf: %w", err)
 	}
 
-	if c := s.CertVerifier; c != nil {
+	if c := s.CertOCSPVerifier; c != nil {
 		for _, chain := range chains {
 			for i, certInChain := range chain {
 				if i == len(chain)-1 {
 					continue
 				}
 
-				if err := c.VerifyCert(ctx, certInChain, chain[i+1]); err != nil {
-					return fmt.Errorf("bad certificate(%d): %w", i, err)
+				if err := c.VerifyCertOCSPStatus(ctx, certInChain, chain[i+1]); err != nil {
+					return fmt.Errorf("bad certificate(%d): ocsp: %w", i, err)
 				}
 			}
 		}
