@@ -1,3 +1,3 @@
 module github.com/ndx-technologies/jws
 
-go 1.26
+go 1.27
